@@ -1,0 +1,55 @@
+
+name: QA Automation Tests
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+jobs:
+  api-tests:
+    name: API Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Install API dependencies
+        working-directory: api
+        run: bun install --frozen-lockfile
+
+      - name: Run API tests
+        working-directory: api
+        env:
+          PRODUCTHUNT_API_URL: https://api.producthunt.com/v2/api/graphql
+          PRODUCTHUNT_ACCESS_TOKEN: ${{ secrets.PRODUCTHUNT_ACCESS_TOKEN }}
+        run: bun test
+
+  ui-tests:
+    name: UI Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Install UI dependencies
+        working-directory: ui
+        run: bun install --frozen-lockfile
+
+      - name: Install Playwright browsers
+        working-directory: ui
+        run: bunx playwright install --with-deps chromium
+
+      - name: Run UI tests
+        working-directory: ui
+        run: bunx playwright test
